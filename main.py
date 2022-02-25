@@ -5,7 +5,10 @@ bob = DataManager()
 charlie = FlightSearch()
 
 dictionary = bob.get_iata_codes()
-print(charlie.find_flights(dictionary))
+sample_dict = (charlie.find_flights(dictionary))
+print(sample_dict[0]['data'][0]['route'][0])
+print("\n This is a buffer \n")
+print(sample_dict[0]['data'][0]['route'][1])
 
 
 #This file will need to use the DataManager,FlightSearch, FlightData,
