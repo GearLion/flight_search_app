@@ -29,9 +29,12 @@ class FlightSearch:
                 "price_to": val,
                 "max_fly_duration": 34,
                 "one_for_city": 1,
+                "max_stopover": 2,
             }
 
-            flights_json = loads(get(url=TEQUILA_ENDPOINT, headers=TEQUILA_HEADER, params=params).text)
+            flight_api = get(url=TEQUILA_ENDPOINT, headers=TEQUILA_HEADER, params=params)
+            flight_api.raise_for_status()
+            flights_json = loads(flight_api.text)
             if flights_json["data"]:
                 flight_list.append(flights_json)
         return flight_list
