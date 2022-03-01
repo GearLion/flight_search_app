@@ -1,5 +1,5 @@
-from datetime import datetime
-
+from datetime import datetime, timedelta
+# Add layover times.
 
 class FlightData:
 
@@ -10,30 +10,40 @@ class FlightData:
         for flight in flight_list:
             # Organize Info for Each Leg
             flights_text = ""
-            total_time = 0
+            leg_time = []
+            go_flight_time = 0
+            return_flight_time = 0
+            leg_num = 1
             for leg, place in enumerate(flight['data'][0]['route']):
                 origin = place['cityFrom']
                 destination = place["cityTo"]
                 time_departure_local = place["local_departure"].split("T")[1].split(".")[0]
                 departure_utc = place["utc_departure"].split(".")[0]
                 if leg == 0:
-                    first_departure = departure_utc
+                    flights_text += "Go Flight Info:\n"
                 time_arrival_local = place["local_arrival"].split("T")[1].split(".")[0]
                 arrival_utc = place["utc_arrival"].split(".")[0]
-                if leg == len(flight['data'][0]['route']) - 1:
-                    final_arrival = arrival_utc
-                    total_time = datetime.strptime(final_arrival, "%Y-%m-%dT%H:%M:%S") - datetime \
-                        .strptime(first_departure, "%Y-%m-%dT%H:%M:%S")
-                    # This is total time in country with flights, not the total time of the flights.
-                    # DUH!
                 time_in_air = datetime.strptime(arrival_utc, "%Y-%m-%dT%H:%M:%S") - datetime.\
                     strptime(departure_utc, "%Y-%m-%dT%H:%M:%S")
-                this_flight = f"  Leg #{leg + 1}:\n" \
+                # arrival_time = arrival_utc
+                # time_on_ground = datetime.strptime(departure_utc, "%Y-%m-%dT%H:%M:%S") - datetime.\
+                #     strptime(arrival_time, "%Y-%m-%dT%H:%M:%S")
+                leg_time.append(time_in_air)
+                if place['cityTo'] == flight['data'][0]['cityTo']:
+                    go_flight_time = sum(leg_time, timedelta())
+                    leg_time.clear()
+                    leg_num = 1
+                    flights_text += "\nReturn Flight Info:\n"
+                elif leg == len(flight['data'][0]['route']) - 1:
+                    return_flight_time = sum(leg_time, timedelta())
+                this_flight = f"  Leg #{leg_num}:\n" \
                               f"    From {origin} to {destination}\n" \
                               f"    Departure Time: {time_departure_local}\n" \
                               f"    Arrival Time:   {time_arrival_local}\n" \
                               f"    Time in Air:    {time_in_air}\n"
                 flights_text += this_flight
+                leg_num += 1
+            flight_num += 1
 
             # Add It to Info About Whole Trip
             final_destination = flight['data'][0]['cityTo']
@@ -44,7 +54,8 @@ class FlightData:
                       f"From: {home}\n" \
                       f"Route to {final_destination}\n" \
                       f"Price: ${price}\n" \
-                      f"Total Time: {total_time}\n"
+                      f"Go Flight Time: {go_flight_time}\n" \
+                      f"Return Flight Time: {return_flight_time}\n\n"
             message += flights_text
             flight_num += 1
             message_list.append(message)
