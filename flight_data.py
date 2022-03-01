@@ -10,6 +10,7 @@ class FlightData:
         for flight in flight_list:
             # Organize Info for Each Leg
             flights_text = ""
+            total_time = 0
             for leg, place in enumerate(flight['data'][0]['route']):
                 origin = place['cityFrom']
                 destination = place["cityTo"]
@@ -19,8 +20,12 @@ class FlightData:
                     first_departure = departure_utc
                 time_arrival_local = place["local_arrival"].split("T")[1].split(".")[0]
                 arrival_utc = place["utc_arrival"].split(".")[0]
-                if leg == len(flight['data'][0]['route']):
+                if leg == len(flight['data'][0]['route']) - 1:
                     final_arrival = arrival_utc
+                    total_time = datetime.strptime(final_arrival, "%Y-%m-%dT%H:%M:%S") - datetime \
+                        .strptime(first_departure, "%Y-%m-%dT%H:%M:%S")
+                    # This is total time in country with flights, not the total time of the flights.
+                    # DUH!
                 time_in_air = datetime.strptime(arrival_utc, "%Y-%m-%dT%H:%M:%S") - datetime.\
                     strptime(departure_utc, "%Y-%m-%dT%H:%M:%S")
                 this_flight = f"  Leg #{leg + 1}:\n" \
@@ -31,11 +36,9 @@ class FlightData:
                 flights_text += this_flight
 
             # Add It to Info About Whole Trip
-            final_destination = flight['data'][0]['route'][0]
-            price = flight["data"]["price"]
-            home = flight['cityFrom']
-            total_time = datetime.strptime(final_arrival, "%Y-%m-%dT%H:%M:%S") - datetime\
-                .strptime(first_departure, "%Y-%m-%dT%H:%M:%S")
+            final_destination = flight['data'][0]['cityTo']
+            price = flight["data"][0]["price"]
+            home = flight['data'][0]['cityFrom']
 
             message = f"Flight: #{flight_num},\n" \
                       f"From: {home}\n" \
