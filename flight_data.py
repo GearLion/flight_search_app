@@ -1,11 +1,13 @@
 from datetime import datetime, timedelta
 # Add layover times.
 
+
 class FlightData:
 
     def organize_flights(self, flight_list):
         message_list = []
         flight_num = 1
+        arrival_time = 0
 
         for flight in flight_list:
             # Organize Info for Each Leg
@@ -25,15 +27,19 @@ class FlightData:
                 arrival_utc = place["utc_arrival"].split(".")[0]
                 time_in_air = datetime.strptime(arrival_utc, "%Y-%m-%dT%H:%M:%S") - datetime.\
                     strptime(departure_utc, "%Y-%m-%dT%H:%M:%S")
-                # arrival_time = arrival_utc
-                # time_on_ground = datetime.strptime(departure_utc, "%Y-%m-%dT%H:%M:%S") - datetime.\
-                #     strptime(arrival_time, "%Y-%m-%dT%H:%M:%S")
+                if arrival_time == 0:
+                    arrival_time = arrival_utc
+                else:
+                    layover_time = datetime.strptime(departure_utc, "%Y-%m-%dT%H:%M:%S") - datetime. \
+                        strptime(arrival_time, "%Y-%m-%dT%H:%M:%S")
+                    layover_text = f"    Layover Time:   {layover_time}\n"
+                    arrival_time = arrival_utc
                 leg_time.append(time_in_air)
                 if place['cityTo'] == flight['data'][0]['cityTo']:
                     go_flight_time = sum(leg_time, timedelta())
                     leg_time.clear()
-                    leg_num = 1
-                    flights_text += "\nReturn Flight Info:\n"
+                    arrival_time = 0
+                    return_text = "\nReturn Flight Info:\n"
                 elif leg == len(flight['data'][0]['route']) - 1:
                     return_flight_time = sum(leg_time, timedelta())
                 this_flight = f"  Leg #{leg_num}:\n" \
@@ -43,6 +49,19 @@ class FlightData:
                               f"    Time in Air:    {time_in_air}\n"
                 flights_text += this_flight
                 leg_num += 1
+
+                try:
+                    flights_text += layover_text
+                except UnboundLocalError:
+                    pass
+                try:
+                    flights_text += return_text
+                except UnboundLocalError:
+                    pass
+                else:
+                    del return_text
+                    del layover_text
+                    leg_num = 1
             flight_num += 1
 
             # Add It to Info About Whole Trip
