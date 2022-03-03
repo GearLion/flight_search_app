@@ -1,4 +1,4 @@
-# Flight Search App
+# Flight Finder
 With the maintenance of a Google Sheet of cities you wish to visit and flight prices you're willing to pay, the app will send you an SMS if there are any flights within the next six
 months which fit your criteria, allowing you to sign up for the flight.
 
