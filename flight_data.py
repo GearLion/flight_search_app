@@ -1,15 +1,15 @@
 from datetime import datetime, timedelta
-# Add layover times.
 
 
 class FlightData:
+    def __init__(self):
+        self.message_list = []
+        self.flight_num = 0
+        self.arrival_time = 0
 
     def organize_flights(self, flight_list):
-        message_list = []
-        flight_num = 1
-        arrival_time = 0
-
         for flight in flight_list:
+            self.flight_num += 1
             # Organize Info for Each Leg
             flights_text = ""
             leg_time = []
@@ -27,18 +27,18 @@ class FlightData:
                 arrival_utc = place["utc_arrival"].split(".")[0]
                 time_in_air = datetime.strptime(arrival_utc, "%Y-%m-%dT%H:%M:%S") - datetime.\
                     strptime(departure_utc, "%Y-%m-%dT%H:%M:%S")
-                if arrival_time == 0:
-                    arrival_time = arrival_utc
+                if self.arrival_time == 0:
+                    self.arrival_time = arrival_utc
                 else:
                     layover_time = datetime.strptime(departure_utc, "%Y-%m-%dT%H:%M:%S") - datetime. \
-                        strptime(arrival_time, "%Y-%m-%dT%H:%M:%S")
+                        strptime(self.arrival_time, "%Y-%m-%dT%H:%M:%S")
                     layover_text = f"    Layover Time:   {layover_time}\n"
-                    arrival_time = arrival_utc
+                    self.arrival_time = arrival_utc
                 leg_time.append(time_in_air)
                 if place['cityTo'] == flight['data'][0]['cityTo']:
                     go_flight_time = sum(leg_time, timedelta())
                     leg_time.clear()
-                    arrival_time = 0
+                    self.arrival_time = 0
                     return_text = "\nReturn Flight Info:\n"
                 elif leg == len(flight['data'][0]['route']) - 1:
                     return_flight_time = sum(leg_time, timedelta())
@@ -50,10 +50,12 @@ class FlightData:
                 flights_text += this_flight
                 leg_num += 1
 
+                # Check if this is the first flight of the trip
                 try:
                     flights_text += layover_text
                 except UnboundLocalError:
                     pass
+                # Check if this is the last flight of a trip
                 try:
                     flights_text += return_text
                 except UnboundLocalError:
@@ -62,21 +64,21 @@ class FlightData:
                     del return_text
                     del layover_text
                     leg_num = 1
-            flight_num += 1
+                # These two must be here because of where we want the text to populate.
 
             # Add It to Info About Whole Trip
             final_destination = flight['data'][0]['cityTo']
             price = flight["data"][0]["price"]
             home = flight['data'][0]['cityFrom']
 
-            message = f"Flight: #{flight_num},\n" \
+            message = f"Flight: #{self.flight_num},\n" \
                       f"From: {home}\n" \
                       f"Route to {final_destination}\n" \
                       f"Price: ${price}\n" \
                       f"Go Flight Time: {go_flight_time}\n" \
                       f"Return Flight Time: {return_flight_time}\n\n"
             message += flights_text
-            flight_num += 1
-            message_list.append(message)
+            self.flight_num += 1
+            self.message_list.append(message)
 
-        return message_list
+        return self.message_list
